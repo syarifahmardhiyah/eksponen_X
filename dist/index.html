@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lembah Kristal Eksponen - Game Edukasi WebVR (SMK Kelas X)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #E8F4F8;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* Start / Cover Screen */
+    #start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #FFFDF8 0%, #E8F4F8 100%);
+      padding: 20px;
+      text-align: center;
+      transition: opacity 0.4s ease;
+    }
+    #start-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .cover-card {
+      background: #FFFFFF;
+      border: 3px solid #EEDCC0;
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 580px;
+      width: 100%;
+      box-shadow: 0 12px 36px rgba(43, 45, 66, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .cover-banner {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      border: 2px solid #F5E6CA;
+    }
+    h1 {
+      color: #2B2D42;
+      font-size: clamp(1.4rem, 4vw, 1.85rem);
+      margin-bottom: 6px;
+    }
+    p.subtitle {
+      color: #5C677D;
+      font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+      margin-bottom: 18px;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+    button.btn-primary {
+      background: #FFD166;
+      color: #2B2D42;
+      border: 2px solid #E5BA4E;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 209, 102, 0.4);
+      transition: all 0.15s ease;
+    }
+    button.btn-primary:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 6px rgba(255, 209, 102, 0.4);
+    }
+    button.btn-vr {
+      background: #4EA8DE;
+      color: #FFFFFF;
+      border: 2px solid #3B89B8;
+      border-radius: 14px;
+      padding: 12px 20px;
+      font-size: 1.0rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(78, 168, 222, 0.3);
+      transition: all 0.15s ease;
+    }
+    button.btn-vr:active {
+      transform: translateY(2px);
+    }
+    .status-text {
+      font-size: 0.8rem;
+      color: #8D99AE;
+      margin-top: 10px;
+    }
+
+    /* In-game HUD controls (Mute & Help) */
+    #hud {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .hud-btn {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #EEDCC0;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2B2D42;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(4px);
+    }
+    .hud-btn:active {
+      transform: scale(0.96);
+    }
+    .quest-tracker {
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #EEDCC0;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2B2D42;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      pointer-events: auto;
+    }
+  </style>
+  <script type="module" crossorigin src="./assets/index-0ksViVrZ.js"></script>
+</head>
+<body>
+  <!-- Canvas 3D Viewport -->
+  <div id="canvas-container"></div>
+
+  <!-- HUD Overlay -->
+  <div id="hud">
+    <button id="btn-audio" class="hud-btn">🔊 Suara: Nyala</button>
+    <div id="quest-tracker" class="quest-tracker">🎯 Misi: 0/3 Selesai</div>
+    <button id="btn-help" class="hud-btn">❓ Bantuan</button>
+  </div>
+
+  <!-- Cover / Start Screen -->
+  <div id="start-screen">
+    <div class="cover-card">
+      <img src="assets/cover.png" alt="Lembah Kristal Eksponen" class="cover-banner">
+      <h1>Lembah Kristal Eksponen</h1>
+      <p class="subtitle">Matematika SMK Kelas X • Eksponen & Bentuk Akar</p>
+      
+      <div class="btn-group">
+        <button id="btn-start" class="btn-primary">▶ MULAI PETUALANGAN</button>
+        <button id="btn-enter-vr" class="btn-vr">🥽 MASUK MODE WEBXR VR</button>
+      </div>
+
+      <div id="vr-status" class="status-text">Memeriksa dukungan perangkat WebXR...</div>
+    </div>
+  </div>
+
+</body>
+</html>
